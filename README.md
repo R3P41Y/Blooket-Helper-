@@ -4,6 +4,7 @@ This project is a Blooket Hacks GUI designed to enhance your Blooket Hacking Exp
 ## Features
 - **User-Friendly GUI**: The graphical user interface is intuitive and easy to navigate.
 - **Easy Access**: Open the GUI effortlessly by pressing the "E" key after pasting the commands into the console.
+-  **FOR ALL BLOOKS**: These blooks nead to be pasted into console and no where else it will **CRASH** Your browser.
 
 ## How to Use
 1. **Copy the Console Code**: Obtain the code provided in the repository.
