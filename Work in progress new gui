@@ -1,0 +1,133 @@
+(() => {
+    // Create iframe for alert, prompt, and confirm
+    let n = document.createElement("iframe");
+    document.body.append(n);
+    window.alert = n.contentWindow.alert.bind(window);
+    window.prompt = n.contentWindow.prompt.bind(window);
+    window.confirm = n.contentWindow.confirm.bind(window);
+    n.remove();
+
+    // Cheat Helper Functions
+    const getValues = () => new Promise((resolve, reject) => {
+        try {
+            let result = window.webpackJsonp.map(e => Object.keys(e[1]).map(t => e[1][t])).reduce((e, t) => [...e, ...t], []).find(e => /\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/.test(e.toString()) && /\(new TextEncoder\)\.encode\(\"(.+?)\"\)/.test(e.toString())).toString();
+            resolve({
+                blooketBuild: result.match(/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/)[0],
+                secret: result.match(/\(new TextEncoder\)\.encode\(\"(.+?)\"\)/)[1]
+            });
+        } catch {
+            reject("Could not fetch auth details");
+        }
+    });
+
+    const encodeValues = async (values, secret) => {
+        let iv = window.crypto.getRandomValues(new Uint8Array(12));
+        return window.btoa(Array.from(iv).map(byte => String.fromCharCode(byte)).join("") + Array.from(new Uint8Array(await window.crypto.subtle.encrypt({ name: "AES-GCM", iv }, await window.crypto.subtle.importKey("raw", await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(secret)), { name: "AES-GCM" }, false, ["encrypt"]), new TextEncoder().encode(JSON.stringify(values))))).map(byte => String.fromCharCode(byte)).join(""));
+    };
+
+    function reactHandler() {
+        return Object.values(document.querySelector("#app > div > div"))[1].children[1]._owner;
+    }
+
+    // Cheat Functions
+    const cheats = {
+        "Infinite Food": () => {
+            if (document.location.pathname !== "/cafe") {
+                return alert("This cheat doesn't work in the shop!");
+            }
+            reactHandler().stateNode.state.foods.forEach(item => item.stock = 99999);
+            reactHandler().stateNode.forceUpdate();
+        },
+        "Max Levels": () => {
+            if (document.location.pathname !== "/cafe/shop") {
+                return alert("This cheat only works in the shop!");
+            }
+            Object.keys(reactHandler().stateNode.state.items).forEach(key => reactHandler().stateNode.state.items[key] = 5);
+            reactHandler().stateNode.forceUpdate();
+        },
+        "Set Cash": () => {
+            const cash = Number(parseFloat(prompt("How much cash would you like?")));
+            reactHandler().stateNode.setState({ cafeCash: cash });
+        },
+        "Auto Answer": () => {
+            alert("Auto Answer feature enabled! Answering for you...");
+            // Logic for auto answer
+        }
+    };
+
+    // Create main GUI style and container
+    let style = document.createElement("style");
+    style.innerHTML = `
+        /* CSS styling goes here */
+    `;
+    document.body.appendChild(style);
+
+    // Create GUI container
+    const GUI = document.createElement("div");
+    GUI.id = "GUI";
+    document.body.appendChild(GUI);
+
+    // Add drag functionality
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    GUI.onmousedown = (e) => {
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = () => {
+            document.onmouseup = null;
+            document.onmousemove = null;
+        };
+        document.onmousemove = (e) => {
+            e = e || window.event;
+            e.preventDefault();
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            GUI.style.top = (GUI.offsetTop - pos2) + "px";
+            GUI.style.left = (GUI.offsetLeft - pos1) + "px";
+        };
+    };
+
+    // GUI Header with close and minimize buttons
+    const header = document.createElement("div");
+    header.id = "GUI-header";
+    header.innerHTML = `Blooket Cheats <span style="font-size: 0.75rem">v4.10.22</span>`;
+    
+    const closeButton = document.createElement("button");
+    closeButton.className = "button";
+    closeButton.innerText = "X";
+    closeButton.onclick = () => { GUI.remove(); };
+    
+    const minimizeButton = document.createElement("button");
+    minimizeButton.className = "button button-minimize";
+    minimizeButton.innerText = "-";
+    minimizeButton.onclick = () => { bodyDiv.hidden = !bodyDiv.hidden; };
+
+    header.appendChild(minimizeButton);
+    header.appendChild(closeButton);
+    GUI.appendChild(header);
+
+    // GUI Body for main content
+    const bodyDiv = document.createElement("div");
+    bodyDiv.id = "GUI-body";
+    GUI.appendChild(bodyDiv);
+
+    // Footer with credits
+    const footer = document.createElement("div");
+    footer.style.fontSize = "0.9rem";
+    footer.style.textAlign = "center";
+    footer.style.paddingBottom = "10px";
+    footer.innerHTML = `<span>#5394<br>Gui BY R3PL4Y <a style="color: lightblue" href="https://github.com/R3P41Y">R3PL4Y</a></span>`;
+    bodyDiv.appendChild(footer);
+
+    // Cheat Buttons and Functionality
+    Object.keys(cheats).forEach(cheatName => {
+        const cheatButton = document.createElement("button");
+        cheatButton.className = "cheat";
+        cheatButton.innerText = cheatName;
+        cheatButton.onclick = cheats[cheatName];
+        bodyDiv.appendChild(cheatButton);
+    });
+})();
+
